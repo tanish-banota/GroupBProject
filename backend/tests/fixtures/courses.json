@@ -1,0 +1,32 @@
+[
+  {
+    "courseString": "01:198:111",
+    "subject": "198",
+    "courseNumber": "111",
+    "title": "INTRODUCTORY PROGRAMMING",
+    "expandedTitle": "INTRODUCTORY PROGRAMMING",
+    "campusCode": "NB",
+    "credits": 4,
+    "courseDescription": "Fixture course",
+    "unknownCourseField": {"preserved": true},
+    "sections": [{
+      "index": "12345",
+      "number": "01",
+      "openStatus": true,
+      "openStatusText": "OPEN",
+      "instructors": [{"name": "EXAMPLE, INSTRUCTOR"}],
+      "unknownSectionField": "preserved",
+      "meetingTimes": [{
+        "meetingDay": "M",
+        "startTimeMilitary": "0900",
+        "endTimeMilitary": "1020",
+        "campusLocation": "1",
+        "buildingCode": "HLL",
+        "roomNumber": "114",
+        "meetingModeCode": "02",
+        "meetingModeDesc": "LEC",
+        "unknownMeetingField": 7
+      }]
+    }]
+  }
+]
