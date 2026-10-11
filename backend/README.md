@@ -1,10 +1,10 @@
 # Rutgers SOC data collector
 
-This is a small Python-only collector for Rutgers' public Schedule of Classes API. It does not write to a database or expose an application API.
+This backend contains a small Python-only collector for Rutgers' public Schedule of Classes API and a FastAPI application that serves its JSON exports.
 
 ## Install and run
 
-Python 3.10+ is sufficient; there are no third-party dependencies. From `backend`:
+The collector requires Python 3.10+ and uses only the standard library. From `backend`:
 
 ```powershell
 python -m unittest discover -s tests -v
@@ -14,6 +14,45 @@ python -m rutgers_soc 2026 9 NB --output-dir .\soc_output
 If using the project-local Windows runtime installed in `.python`, substitute `\.python\python.exe` for `python` in those commands.
 
 The numbers above are examples, not embedded collector defaults. The command fetches each endpoint at most once. `--no-open-sections` skips the optional availability request.
+
+## Application API
+
+From the repository root, install dependencies, run the collector first, and start the API:
+
+```sh
+cd backend
+python -m pip install -r requirements.txt
+python -m rutgers_soc 2026 9 NB --output-dir soc_output
+python -m uvicorn api:app --reload
+```
+
+The API reads JSON on each request from `backend/soc_output` by default. Set
+`SOC_OUTPUT_DIR` to use another local directory (relative paths resolve from the
+server's working directory), for example:
+
+```sh
+SOC_OUTPUT_DIR=/path/to/exports python -m uvicorn api:app --reload
+```
+
+Example URLs:
+
+- `http://localhost:8000/health`
+- `http://localhost:8000/courses`
+- `http://localhost:8000/courses?subject=198&search=computer`
+- `http://localhost:8000/courses/rutgers-soc:course:2026:9:NB:01:198:111`
+- `http://localhost:8000/courses/rutgers-soc:course:2026:9:NB:01:198:111/sections`
+
+Use an actual course ID from `/courses`. Subject matching is exact and
+case-insensitive; search matches substrings in `course_string`, `title`, or
+`expanded_title`. Sections include a `meeting_times` array joined by section ID.
+Unknown courses return 404; missing required export files return 503 with a
+message to collect the data first. CORS allows `http://localhost:5173` only.
+
+Run the API and collector tests from `backend` after installing dependencies:
+
+```sh
+python -m unittest discover -s tests -v
+```
 
 ## Output
 
