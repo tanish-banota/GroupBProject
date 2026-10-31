@@ -29,6 +29,8 @@ class ApiTests(unittest.TestCase):
              "title": None, "expanded_title": None},
         ]
         self.write("courses.json", self.courses)
+        self.metadata = {"requested_parameters": {"year": "2026", "term": "9", "campus": "NB"}}
+        self.write("metadata.json", self.metadata)
         self.write("sections.json", [
             {"id": "section-1", "course_id": self.courses[0]["id"], "raw_source": {"preserved": True}},
             {"id": "section-2", "course_id": self.courses[0]["id"]},
@@ -65,6 +67,20 @@ class ApiTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.json(), expected)
 
+    def test_course_pagination(self):
+        self.assertEqual(self.client.get("/courses", params={"limit": 2}).json(), self.courses[:2])
+        self.assertEqual(self.client.get("/courses", params={"offset": 1, "limit": 1}).json(),
+                         self.courses[1:2])
+        self.assertEqual(self.client.get("/courses", params={"offset": 3}).json(), [])
+        self.assertEqual(self.client.get("/courses", params={"subject": "198", "offset": 1}).json(), [])
+        for params in ({"limit": 0}, {"limit": 501}, {"offset": -1}):
+            with self.subTest(params=params):
+                self.assertEqual(self.client.get("/courses", params=params).status_code, 422)
+
+    def test_subjects_and_metadata(self):
+        self.assertEqual(self.client.get("/subjects").json(), ["198", "AbC"])
+        self.assertEqual(self.client.get("/metadata").json(), self.metadata)
+
     def test_course_detail_and_sections(self):
         url = f"/courses/{self.courses[0]['id']}"
         self.assertEqual(self.client.get(url).json(), self.courses[0])
@@ -77,16 +93,18 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(sections[0]["raw_source"], {"preserved": True})
         self.assertEqual(sections[1]["meeting_times"], [])
         self.assertEqual(self.client.get("/courses/empty/sections").json(), [])
+        self.assertEqual(self.client.get("/sections/section-1").json(), sections[0])
 
     def test_not_found(self):
-        for url in ("/courses/missing", "/courses/missing/sections"):
+        for url in ("/courses/missing", "/courses/missing/sections", "/sections/missing"):
             self.assertEqual(self.client.get(url).status_code, 404)
 
     def test_missing_data(self):
         for filename, urls in [
-            ("courses.json", ["/courses", "/courses/empty", "/courses/empty/sections"]),
-            ("sections.json", ["/courses/empty/sections"]),
-            ("meeting_times.json", ["/courses/empty/sections"]),
+            ("courses.json", ["/courses", "/subjects", "/courses/empty", "/courses/empty/sections"]),
+            ("sections.json", ["/courses/empty/sections", "/sections/section-1"]),
+            ("meeting_times.json", ["/courses/empty/sections", "/sections/section-1"]),
+            ("metadata.json", ["/metadata"]),
         ]:
             path = self.output_dir / filename
             original = path.read_text(encoding="utf-8")
@@ -102,6 +120,11 @@ class ApiTests(unittest.TestCase):
     def test_reads_updated_exports(self):
         self.write("courses.json", [])
         self.assertEqual(self.client.get("/courses").json(), [])
+        self.assertEqual(self.client.get("/subjects").json(), [])
+
+    def test_invalid_metadata(self):
+        self.write("metadata.json", [])
+        self.assertEqual(self.client.get("/metadata").status_code, 503)
 
     def test_cors(self):
         for origin, allowed in [("http://localhost:5173", True), ("http://localhost:3000", False)]:

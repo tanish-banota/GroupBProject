@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -17,9 +17,16 @@ app.add_middleware(
 
 
 def load_records(filename: str) -> list[dict[str, Any]]:
+    records = load_json(filename)
+    if not isinstance(records, list) or not all(isinstance(record, dict) for record in records):
+        raise HTTPException(status_code=503, detail=f"{filename} must contain an array of records.")
+    return records
+
+
+def load_json(filename: str) -> Any:
     output_dir = Path(os.environ.get("SOC_OUTPUT_DIR", Path(__file__).parent / "soc_output"))
     try:
-        records = json.loads((output_dir / filename).read_text(encoding="utf-8"))
+        return json.loads((output_dir / filename).read_text(encoding="utf-8"))
     except FileNotFoundError:
         raise HTTPException(
             status_code=503,
@@ -27,9 +34,6 @@ def load_records(filename: str) -> list[dict[str, Any]]:
         ) from None
     except (OSError, ValueError):
         raise HTTPException(status_code=503, detail=f"Cannot read {filename} as JSON.") from None
-    if not isinstance(records, list) or not all(isinstance(record, dict) for record in records):
-        raise HTTPException(status_code=503, detail=f"{filename} must contain an array of records.")
-    return records
 
 
 @app.get("/health")
@@ -37,8 +41,30 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/metadata")
+def metadata() -> dict[str, Any]:
+    result = load_json("metadata.json")
+    if not isinstance(result, dict):
+        raise HTTPException(status_code=503, detail="metadata.json must contain an object.")
+    return result
+
+
+@app.get("/subjects")
+def subjects() -> list[str]:
+    codes = {
+        code for record in load_records("courses.json")
+        if isinstance(code := record.get("subject_code"), str) and code
+    }
+    return sorted(codes, key=str.casefold)
+
+
 @app.get("/courses")
-def courses(subject: str | None = None, search: str | None = None) -> list[dict[str, Any]]:
+def courses(
+    subject: str | None = None,
+    search: str | None = None,
+    limit: int | None = Query(default=None, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict[str, Any]]:
     records = load_records("courses.json")
     if subject is not None:
         records = [
@@ -51,7 +77,7 @@ def courses(subject: str | None = None, search: str | None = None) -> list[dict[
             if any(search.casefold() in (record.get(field) or "").casefold()
                    for field in ("course_string", "title", "expanded_title"))
         ]
-    return records
+    return records[offset:offset + limit if limit is not None else None]
 
 
 @app.get("/courses/{course_id}")
@@ -72,3 +98,14 @@ def sections(course_id: str) -> list[dict[str, Any]]:
                                      if meeting.get("section_id") == section["id"]]}
         for section in section_records if section.get("course_id") == course_id
     ]
+
+
+@app.get("/sections/{section_id}")
+def section(section_id: str) -> dict[str, Any]:
+    for record in load_records("sections.json"):
+        if record.get("id") == section_id:
+            meeting_records = load_records("meeting_times.json")
+            return {**record, "meeting_times": [
+                meeting for meeting in meeting_records if meeting.get("section_id") == section_id
+            ]}
+    raise HTTPException(status_code=404, detail="Section not found.")

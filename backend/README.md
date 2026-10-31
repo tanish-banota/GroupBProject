@@ -37,15 +37,23 @@ SOC_OUTPUT_DIR=/path/to/exports python -m uvicorn api:app --reload
 Example URLs:
 
 - `http://localhost:8000/health`
+- `http://localhost:8000/metadata`
+- `http://localhost:8000/subjects`
 - `http://localhost:8000/courses`
 - `http://localhost:8000/courses?subject=198&search=computer`
+- `http://localhost:8000/courses?subject=198&limit=50&offset=0`
 - `http://localhost:8000/courses/rutgers-soc:course:2026:9:NB:01:198:111`
 - `http://localhost:8000/courses/rutgers-soc:course:2026:9:NB:01:198:111/sections`
+- `http://localhost:8000/sections/rutgers-soc:section:2026:9:NB:12345`
 
 Use an actual course ID from `/courses`. Subject matching is exact and
 case-insensitive; search matches substrings in `course_string`, `title`, or
-`expanded_title`. Sections include a `meeting_times` array joined by section ID.
-Unknown courses return 404; missing required export files return 503 with a
+`expanded_title`. Apply `limit` (1–500) and `offset` (0 or greater) after filtering
+to page through the course array; omitting them returns all courses. `/subjects`
+returns sorted subject codes. `/metadata` returns the export scope and collection
+time. Sections include a `meeting_times` array joined by section ID, both in the
+course sections list and the single-section endpoint.
+Unknown courses or sections return 404; missing required export files return 503 with a
 message to collect the data first. CORS allows `http://localhost:5173` only.
 
 Run the API and collector tests from `backend` after installing dependencies:
