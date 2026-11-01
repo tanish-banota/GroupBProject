@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findConflicts, timesOverlap } from './conflicts'
+import { findConflicts, timesOverlap, wouldConflict } from './conflicts'
 import type { MeetingTime, ScheduledSection } from './types'
 
 function meeting(overrides: Partial<MeetingTime>): MeetingTime {
@@ -58,5 +58,18 @@ describe('findConflicts', () => {
     const a = section('a', [meeting({ meeting_day: 'M', start_time_military: '0900', end_time_military: '1020' })])
     const b = section('b', [meeting({ meeting_day: 'M', start_time_military: '1400', end_time_military: '1520' })])
     expect(findConflicts([a, b])).toEqual(new Set())
+  })
+})
+
+describe('wouldConflict', () => {
+  it('detects a candidate that overlaps an existing section', () => {
+    const existing = section('a', [meeting({ meeting_day: 'M', start_time_military: '0900', end_time_military: '1020' })])
+    const candidate = section('b', [meeting({ meeting_day: 'M', start_time_military: '1000', end_time_military: '1120' })])
+    expect(wouldConflict([existing], candidate)).toBe(true)
+  })
+
+  it('is false for a section already on the schedule', () => {
+    const existing = section('a', [meeting({ meeting_day: 'M', start_time_military: '0900', end_time_military: '1020' })])
+    expect(wouldConflict([existing], existing)).toBe(false)
   })
 })

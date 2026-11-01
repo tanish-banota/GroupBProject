@@ -1,9 +1,11 @@
 """Minimal HTTP access to the Rutgers SOC collector's JSON exports."""
 
+from __future__ import annotations
+
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):517\d",
     allow_methods=["GET"],
 )
 
@@ -60,9 +62,9 @@ def subjects() -> list[str]:
 
 @app.get("/courses")
 def courses(
-    subject: str | None = None,
-    search: str | None = None,
-    limit: int | None = Query(default=None, ge=1, le=500),
+    subject: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: Optional[int] = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
 ) -> list[dict[str, Any]]:
     records = load_records("courses.json")

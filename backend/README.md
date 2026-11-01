@@ -54,7 +54,9 @@ returns sorted subject codes. `/metadata` returns the export scope and collectio
 time. Sections include a `meeting_times` array joined by section ID, both in the
 course sections list and the single-section endpoint.
 Unknown courses or sections return 404; missing required export files return 503 with a
-message to collect the data first. CORS allows `http://localhost:5173` only.
+message to collect the data first. CORS allows local Vite origins on
+`http://localhost:5170-5179` and `http://127.0.0.1:5170-5179`. The frontend
+dev server also proxies `/api` to this API so the browser origin does not matter.
 
 Run the API and collector tests from `backend` after installing dependencies:
 

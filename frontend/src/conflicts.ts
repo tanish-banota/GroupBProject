@@ -26,3 +26,9 @@ export function findConflicts(scheduled: ScheduledSection[]): Set<string> {
   }
   return conflicting
 }
+
+/** True if adding candidate would overlap a meeting already on the schedule. */
+export function wouldConflict(scheduled: ScheduledSection[], candidate: ScheduledSection): boolean {
+  if (scheduled.some((section) => section.sectionId === candidate.sectionId)) return false
+  return findConflicts([...scheduled, candidate]).has(candidate.sectionId)
+}

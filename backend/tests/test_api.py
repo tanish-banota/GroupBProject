@@ -127,7 +127,12 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get("/metadata").status_code, 503)
 
     def test_cors(self):
-        for origin, allowed in [("http://localhost:5173", True), ("http://localhost:3000", False)]:
+        for origin, allowed in [
+            ("http://localhost:5173", True),
+            ("http://localhost:5174", True),
+            ("http://127.0.0.1:5173", True),
+            ("http://localhost:3000", False),
+        ]:
             response = self.client.get("/health", headers={"Origin": origin})
             self.assertEqual(response.headers.get("access-control-allow-origin"),
                              origin if allowed else None)

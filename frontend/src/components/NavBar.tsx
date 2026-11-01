@@ -8,7 +8,7 @@ export default function NavBar() {
     <nav className="navbar">
       <span className="navbar__brand">Rutgers Schedule</span>
       <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
-        Browse
+        Select courses
       </NavLink>
       <NavLink to="/schedule" className={({ isActive }) => (isActive ? 'active' : '')}>
         My Schedule {scheduled.length > 0 && <span className="navbar__badge">{scheduled.length}</span>}

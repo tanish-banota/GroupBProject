@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchCourse, fetchSections } from '../api'
+import { toScheduledSection } from '../schedule'
 import { useSchedule } from '../ScheduleContext'
 import { dayLabel, formatMilitaryTime } from '../time'
 import type { Course, Section } from '../types'
@@ -38,7 +39,7 @@ export default function CoursePage() {
   return (
     <div className="page">
       <Link to="/" className="back-link">
-        ← Back to browse
+        ← Back to course selection
       </Link>
       <h1>{course.course_string}</h1>
       <h2>{course.title ?? course.expanded_title}</h2>
@@ -49,11 +50,8 @@ export default function CoursePage() {
       {sections.length === 0 && <p className="muted">No sections found for this course.</p>}
       <ul className="section-list">
         {sections.map((section) => {
+          const candidate = toScheduledSection(course, section)
           const added = isScheduled(section.id)
-          const instructorNames = section.instructors
-            .map((i) => i.name)
-            .filter(Boolean)
-            .join(', ')
           return (
             <li key={section.id} className="section-card">
               <div className="section-card__header">
@@ -62,7 +60,7 @@ export default function CoursePage() {
                   {section.open_status_text ?? (section.open_status ? 'OPEN' : 'CLOSED')}
                 </span>
               </div>
-              {instructorNames && <p className="muted">{instructorNames}</p>}
+              {candidate.instructorNames && <p className="muted">{candidate.instructorNames}</p>}
               <ul className="meeting-list">
                 {section.meeting_times.map((meeting) => (
                   <li key={meeting.id}>
@@ -75,16 +73,7 @@ export default function CoursePage() {
               <button
                 type="button"
                 disabled={added}
-                onClick={() =>
-                  addSection({
-                    sectionId: section.id,
-                    courseString: course.course_string ?? course.id,
-                    courseTitle: course.title ?? course.expanded_title ?? '',
-                    sectionNumber: section.section_number,
-                    instructorNames,
-                    meetingTimes: section.meeting_times,
-                  })
-                }
+                onClick={() => addSection(candidate)}
               >
                 {added ? 'Added' : 'Add to schedule'}
               </button>

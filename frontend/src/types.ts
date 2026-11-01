@@ -38,9 +38,11 @@ export interface Section {
 
 export interface ScheduledSection {
   sectionId: string
+  courseId?: string
   courseString: string
   courseTitle: string
   sectionNumber: string | null
   instructorNames: string
   meetingTimes: MeetingTime[]
+  credits?: number | string | null
 }
