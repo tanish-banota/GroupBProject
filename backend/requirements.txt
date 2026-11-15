@@ -1,3 +1,5 @@
 fastapi
 uvicorn
 httpx # Required by FastAPI's TestClient for tests.
+supabase
+python-dotenv
