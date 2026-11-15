@@ -142,6 +142,37 @@ input {
   text-align: center;
 }
 
+.navbar button {
+  white-space: nowrap;
+}
+
+.auth-error {
+  margin-bottom: 16px;
+}
+
+.account-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.account-form input {
+  min-width: 220px;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .navbar__brand {
+    width: 100%;
+  }
+}
+
 main {
   max-width: 900px;
   margin: 0 auto;

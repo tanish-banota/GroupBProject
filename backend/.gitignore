@@ -1,4 +1,6 @@
 .python/
 .venv/
+.env
+.env.*
 __pycache__/
 soc_output/
