@@ -54,6 +54,12 @@ describe('findConflicts', () => {
     expect(findConflicts([a, b])).toEqual(new Set())
   })
 
+  it('treats SOC H and TH as the same Thursday', () => {
+    const a = section('a', [meeting({ meeting_day: 'H', start_time_military: '0900', end_time_military: '1020' })])
+    const b = section('b', [meeting({ meeting_day: 'TH', start_time_military: '1000', end_time_military: '1120' })])
+    expect(findConflicts([a, b])).toEqual(new Set(['a', 'b']))
+  })
+
   it('does not flag non-overlapping sections on the same day', () => {
     const a = section('a', [meeting({ meeting_day: 'M', start_time_military: '0900', end_time_military: '1020' })])
     const b = section('b', [meeting({ meeting_day: 'M', start_time_military: '1400', end_time_military: '1520' })])

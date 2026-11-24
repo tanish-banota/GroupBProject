@@ -82,6 +82,12 @@ button {
   background: var(--accent);
   color: #fff;
   cursor: pointer;
+  transition: filter 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+button:hover:not(:disabled),
+button:focus-visible:not(:disabled) {
+  filter: brightness(1.18);
 }
 
 button:disabled {
@@ -94,6 +100,14 @@ button.secondary {
   color: var(--text);
   border-color: var(--border);
   margin-left: 8px;
+}
+
+button.secondary:hover:not(:disabled),
+button.secondary:focus-visible:not(:disabled) {
+  filter: brightness(1.12);
+  background: var(--bg-muted);
+  border-color: var(--accent-border);
+  color: var(--text-h);
 }
 
 input {
@@ -187,10 +201,70 @@ main {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  align-items: flex-start;
 }
 
 .filters--stack {
   flex-direction: column;
+}
+
+.filters__subject {
+  position: relative;
+  flex: 0 0 160px;
+  width: 160px;
+}
+
+.filters--stack .filters__subject {
+  flex: none;
+  width: 100%;
+}
+
+.filters__subject input {
+  width: 100%;
+}
+
+.filters > input[aria-label='Search title or course number'] {
+  flex: 1;
+  min-width: 0;
+}
+
+.filters__suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  max-height: 240px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.filters__suggestion {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-h);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.filters__suggestion:hover:not(:disabled),
+.filters__suggestion:focus-visible:not(:disabled),
+.filters__suggestion--active {
+  filter: none;
+  background: var(--accent-bg);
+  color: var(--text-h);
 }
 
 .back-link {
@@ -276,11 +350,14 @@ main {
 }
 
 .schedule-grid__time-axis {
-  position: relative;
-  width: 60px;
+  width: 64px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   background: var(--bg-muted);
+}
+
+.schedule-grid__time-axis-body {
+  position: relative;
 }
 
 .schedule-grid__hour-label {
@@ -289,8 +366,10 @@ main {
   right: 4px;
   transform: translateY(-50%);
   font-size: 11px;
+  line-height: 1.2;
   text-align: right;
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 .schedule-grid__day {
@@ -308,6 +387,8 @@ main {
   font-weight: 600;
   color: var(--text-h);
   padding: 6px 0;
+  min-height: 1.5em;
+  box-sizing: content-box;
   border-bottom: 1px solid var(--border);
   background: var(--bg-muted);
 }
@@ -334,11 +415,102 @@ main {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.schedule-grid__block:hover,
+.schedule-grid__block:focus-visible {
+  filter: brightness(1.2);
+  border-color: var(--accent);
+  outline: none;
 }
 
 .schedule-grid__block strong {
   color: var(--text-h);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(12, 10, 16, 0.55);
+}
+
+.modal {
+  width: min(440px, 100%);
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  padding: 20px 20px 16px;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-h);
+}
+
+.modal__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-muted);
+  color: var(--text-h);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal__close:hover,
+.modal__close:focus-visible {
+  filter: brightness(1.25);
+  border-color: var(--accent-border);
+  outline: none;
+}
+
+.modal__subtitle {
+  margin: 8px 0 12px;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.modal__section-heading {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+  color: var(--text-h);
+}
+
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .schedule-grid__block--conflict {
@@ -433,6 +605,13 @@ main {
   border-radius: 8px;
   text-align: left;
   padding: 10px 12px;
+}
+
+.panel-course__toggle:hover:not(:disabled),
+.panel-course__toggle:focus-visible:not(:disabled) {
+  filter: none;
+  background: var(--bg-muted);
+  color: var(--text-h);
 }
 
 .panel-course__body {

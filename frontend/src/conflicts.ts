@@ -1,3 +1,4 @@
+import { normalizeMeetingDay } from './time'
 import type { ScheduledSection } from './types'
 
 export function timesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
@@ -13,7 +14,9 @@ export function findConflicts(scheduled: ScheduledSection[]): Set<string> {
       const b = scheduled[j]
       for (const am of a.meetingTimes) {
         for (const bm of b.meetingTimes) {
-          if (!am.meeting_day || am.meeting_day !== bm.meeting_day) continue
+          const aDay = normalizeMeetingDay(am.meeting_day)
+          const bDay = normalizeMeetingDay(bm.meeting_day)
+          if (!aDay || aDay !== bDay) continue
           if (!am.start_time_military || !am.end_time_military) continue
           if (!bm.start_time_military || !bm.end_time_military) continue
           if (timesOverlap(am.start_time_military, am.end_time_military, bm.start_time_military, bm.end_time_military)) {

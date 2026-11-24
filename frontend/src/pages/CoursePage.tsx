@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchCourse, fetchSections } from '../api'
-import { toScheduledSection } from '../schedule'
+import { wouldConflict } from '../conflicts'
+import { hasOtherSectionOfCourse, isSectionOpen, toScheduledSection } from '../schedule'
 import { useSchedule } from '../ScheduleContext'
 import { dayLabel, formatMilitaryTime } from '../time'
 import type { Course, Section } from '../types'
@@ -52,12 +53,15 @@ export default function CoursePage() {
         {sections.map((section) => {
           const candidate = toScheduledSection(course, section)
           const added = isScheduled(section.id)
+          const open = isSectionOpen(section)
+          const otherSectionScheduled = !added && hasOtherSectionOfCourse(scheduled, candidate)
+          const conflict = open && !added && !otherSectionScheduled && wouldConflict(scheduled, candidate)
           return (
             <li key={section.id} className="section-card">
               <div className="section-card__header">
                 <span>Section {section.section_number}</span>
-                <span className={section.open_status ? 'status-open' : 'status-closed'}>
-                  {section.open_status_text ?? (section.open_status ? 'OPEN' : 'CLOSED')}
+                <span className={open ? 'status-open' : 'status-closed'}>
+                  {section.open_status_text ?? (open ? 'OPEN' : 'CLOSED')}
                 </span>
               </div>
               {candidate.instructorNames && <p className="muted">{candidate.instructorNames}</p>}
@@ -70,16 +74,23 @@ export default function CoursePage() {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                disabled={added}
-                onClick={() => addSection(candidate)}
-              >
-                {added ? 'Added' : 'Add to schedule'}
-              </button>
-              {added && (
+              {added ? (
                 <button type="button" className="secondary" onClick={() => removeSection(section.id)}>
                   Remove
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!open || otherSectionScheduled}
+                  onClick={() => addSection(candidate)}
+                >
+                  {!open
+                    ? 'Closed'
+                    : otherSectionScheduled
+                      ? 'Already scheduled'
+                      : conflict
+                        ? 'Add (conflict)'
+                        : 'Add to schedule'}
                 </button>
               )}
             </li>

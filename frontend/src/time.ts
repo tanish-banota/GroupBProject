@@ -10,9 +10,19 @@ const DAY_LABELS: Record<string, string> = {
 
 export const DAY_ORDER = ['M', 'T', 'W', 'TH', 'F', 'S', 'U']
 
+/** Rutgers SOC uses H for Thursday; normalize to the calendar's TH code. */
+export function normalizeMeetingDay(code: string | null): string | null {
+  if (!code) return null
+  const trimmed = code.trim().toUpperCase()
+  if (!trimmed) return null
+  if (trimmed === 'H') return 'TH'
+  return trimmed
+}
+
 export function dayLabel(code: string | null): string {
-  if (!code) return '?'
-  return DAY_LABELS[code] ?? code
+  const day = normalizeMeetingDay(code)
+  if (!day) return '?'
+  return DAY_LABELS[day] ?? day
 }
 
 export function militaryToMinutes(time: string): number {

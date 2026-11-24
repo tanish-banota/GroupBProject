@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { findConflicts } from './conflicts'
-import { scheduledBelongsToCourse } from './schedule'
+import { hasOtherSectionOfCourse, scheduledBelongsToCourse } from './schedule'
 import type { Course, ScheduledSection } from './types'
 
 const SCHEDULE_KEY = 'rutgers-schedule'
@@ -40,7 +40,11 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   }, [selectedCourses])
 
   const addSection = (section: ScheduledSection) => {
-    setScheduled((prev) => (prev.some((s) => s.sectionId === section.sectionId) ? prev : [...prev, section]))
+    setScheduled((prev) => {
+      if (prev.some((s) => s.sectionId === section.sectionId)) return prev
+      if (hasOtherSectionOfCourse(prev, section)) return prev
+      return [...prev, section]
+    })
   }
 
   const removeSection = (sectionId: string) => {
