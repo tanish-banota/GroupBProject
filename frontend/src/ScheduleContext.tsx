@@ -1,10 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { findConflicts } from './conflicts'
 import { hasOtherSectionOfCourse, scheduledBelongsToCourse } from './schedule'
+import { supabase } from './supabase'
 import type { Course, ScheduledSection } from './types'
 
 const SCHEDULE_KEY = 'rutgers-schedule'
 const CART_KEY = 'rutgers-selected-courses'
+const pendingKey = (userId: string) => `rutgers-pending-schedule:${userId}`
 
 interface ScheduleContextValue {
   scheduled: ScheduledSection[]
@@ -27,17 +29,91 @@ function loadStored<T>(key: string, fallback: T): T {
   }
 }
 
-export function ScheduleProvider({ children }: { children: ReactNode }) {
-  const [scheduled, setScheduled] = useState<ScheduledSection[]>(() => loadStored(SCHEDULE_KEY, []))
-  const [selectedCourses, setSelectedCourses] = useState<Course[]>(() => loadStored(CART_KEY, []))
+export function ScheduleProvider({ children, userId }: { children: ReactNode; userId: string }) {
+  const [scheduled, setScheduled] = useState<ScheduledSection[]>([])
+  const [selectedCourses, setSelectedCourses] = useState<Course[]>([])
+  const [ready, setReady] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [reload, setReload] = useState(0)
+  const [retrySave, setRetrySave] = useState(0)
+  const lastSaved = useRef('')
+  const latest = useRef('')
+  const saveQueue = useRef(Promise.resolve())
 
   useEffect(() => {
-    localStorage.setItem(SCHEDULE_KEY, JSON.stringify(scheduled))
-  }, [scheduled])
+    if (!supabase) return
+    let active = true
+    const client = supabase
+
+    client.from('users').select('selected_courses, scheduled_sections').eq('id', userId).single()
+      .then(({ data, error }) => {
+        if (!active) return
+        if (error) {
+          setLoadError(`Couldn't load your schedule: ${error.message}`)
+          return
+        }
+
+        const cloudCourses = Array.isArray(data.selected_courses) ? data.selected_courses as Course[] : []
+        const cloudSections = Array.isArray(data.scheduled_sections) ? data.scheduled_sections as ScheduledSection[] : []
+        const pending = loadStored<{ selectedCourses: Course[]; scheduled: ScheduledSection[] } | null>(pendingKey(userId), null)
+        const legacyCourses = loadStored<Course[]>(CART_KEY, [])
+        const legacySections = loadStored<ScheduledSection[]>(SCHEDULE_KEY, [])
+        const importLegacy = !pending && cloudCourses.length === 0 && cloudSections.length === 0 &&
+          (legacyCourses.length > 0 || legacySections.length > 0)
+        const courses = pending && Array.isArray(pending.selectedCourses) ? pending.selectedCourses : importLegacy ? legacyCourses : cloudCourses
+        const sections = pending && Array.isArray(pending.scheduled) ? pending.scheduled : importLegacy ? legacySections : cloudSections
+
+        lastSaved.current = JSON.stringify({ selectedCourses: cloudCourses, scheduled: cloudSections })
+        setSelectedCourses(courses)
+        setScheduled(sections)
+        setLoadError(null)
+        setReady(true)
+        if (!importLegacy) {
+          localStorage.removeItem(CART_KEY)
+          localStorage.removeItem(SCHEDULE_KEY)
+        }
+      })
+
+    return () => { active = false }
+  }, [userId, reload])
 
   useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(selectedCourses))
-  }, [selectedCourses])
+    if (!ready || !supabase) return
+    const snapshot = JSON.stringify({ selectedCourses, scheduled })
+    latest.current = snapshot
+    if (snapshot === lastSaved.current) {
+      localStorage.removeItem(pendingKey(userId))
+      return
+    }
+    localStorage.setItem(pendingKey(userId), snapshot)
+    const client = supabase
+
+    const timer = window.setTimeout(() => {
+      saveQueue.current = saveQueue.current.catch(() => undefined).then(async () => {
+        const { error } = await client.from('users').update({
+          selected_courses: selectedCourses,
+          scheduled_sections: scheduled,
+        }).eq('id', userId).select('id').single()
+        if (error) {
+          if (latest.current === snapshot) setSaveError(`Couldn't save your schedule: ${error.message}`)
+          return
+        }
+        lastSaved.current = snapshot
+        localStorage.removeItem(CART_KEY)
+        localStorage.removeItem(SCHEDULE_KEY)
+        if (latest.current === snapshot) {
+          localStorage.removeItem(pendingKey(userId))
+          setSaveError(null)
+        }
+      }).catch((error: unknown) => {
+        if (latest.current === snapshot) {
+          setSaveError(`Couldn't save your schedule: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+      })
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [ready, selectedCourses, scheduled, userId, retrySave])
 
   const addSection = (section: ScheduledSection) => {
     setScheduled((prev) => {
@@ -66,10 +142,24 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
 
   const conflicts = useMemo(() => findConflicts(scheduled), [scheduled])
 
+  if (loadError) return (
+    <main>
+      <p role="alert" className="error">{loadError}</p>
+      <button type="button" onClick={() => setReload((value) => value + 1)}>Retry loading</button>
+    </main>
+  )
+
+  if (!ready) return <main><p>Loading your schedule…</p></main>
+
   return (
     <ScheduleContext.Provider
       value={{ scheduled, selectedCourses, conflicts, addSection, removeSection, addCourse, removeCourse }}
     >
+      {saveError && (
+        <div className="schedule-save-error" role="alert">
+          {saveError} <button type="button" onClick={() => setRetrySave((value) => value + 1)}>Retry saving</button>
+        </div>
+      )}
       {children}
     </ScheduleContext.Provider>
   )
