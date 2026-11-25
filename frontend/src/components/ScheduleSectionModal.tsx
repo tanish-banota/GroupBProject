@@ -12,7 +12,7 @@ export default function ScheduleSectionModal({
   section: ScheduledSection
   conflicted: boolean
   onClose: () => void
-  onRemove: () => void
+  onRemove?: () => void
 }) {
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -86,16 +86,18 @@ export default function ScheduleSectionModal({
               Course details
             </Link>
           )}
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => {
-              onRemove()
-              onClose()
-            }}
-          >
-            Remove from schedule
-          </button>
+          {onRemove && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => {
+                onRemove()
+                onClose()
+              }}
+            >
+              Remove from schedule
+            </button>
+          )}
         </div>
       </div>
     </div>

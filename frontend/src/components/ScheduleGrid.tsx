@@ -85,9 +85,11 @@ function buildBlocks(scheduled: ScheduledSection[], conflicts: Set<string>): Blo
 export default function ScheduleGrid({
   scheduled,
   conflicts,
+  readOnly = false,
 }: {
   scheduled: ScheduledSection[]
   conflicts: Set<string>
+  readOnly?: boolean
 }) {
   const { removeSection } = useSchedule()
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
@@ -163,7 +165,7 @@ export default function ScheduleGrid({
           section={selected}
           conflicted={conflicts.has(selected.sectionId)}
           onClose={closeModal}
-          onRemove={() => removeSection(selected.sectionId)}
+          onRemove={readOnly ? undefined : () => removeSection(selected.sectionId)}
         />
       )}
     </>

@@ -46,6 +46,7 @@ The first screen offers email/password sign-in, email account creation, and Goog
 - **Browse** (`/`) — search and filter courses by subject code, pulled from `/courses`.
 - **Course detail** (`/courses/:courseId`) — a course's sections, meeting times, and instructors, with an "Add to schedule" action per section.
 - **My Schedule** (`/schedule`) — a weekly grid of your added sections, built from meeting times. Sections with overlapping meeting times are flagged with a "Conflict" badge rather than blocked. Your selections persist to your Supabase profile.
+- **Generated schedules** — on My Schedule, generate conflict-free combinations from all selected courses, preview five at a time, and save one to your profile. Closed sections can be included with a toggle, and any manually chosen section can be kept fixed. Results use the section data currently in `backend/soc_output`.
 - **Account** (`/account`) — edit the profile stored in Supabase after signing in with email or Google.
 
 ## Other scripts

@@ -13,6 +13,7 @@ interface ScheduleContextValue {
   selectedCourses: Course[]
   conflicts: Set<string>
   addSection: (section: ScheduledSection) => void
+  replaceSchedule: (sections: ScheduledSection[]) => void
   removeSection: (sectionId: string) => void
   addCourse: (course: Course) => void
   removeCourse: (courseId: string) => void
@@ -127,6 +128,10 @@ export function ScheduleProvider({ children, userId }: { children: ReactNode; us
     setScheduled((prev) => prev.filter((s) => s.sectionId !== sectionId))
   }
 
+  const replaceSchedule = (sections: ScheduledSection[]) => {
+    setScheduled([...sections])
+  }
+
   const addCourse = (course: Course) => {
     setSelectedCourses((prev) => (prev.some((c) => c.id === course.id) ? prev : [...prev, course]))
   }
@@ -153,7 +158,7 @@ export function ScheduleProvider({ children, userId }: { children: ReactNode; us
 
   return (
     <ScheduleContext.Provider
-      value={{ scheduled, selectedCourses, conflicts, addSection, removeSection, addCourse, removeCourse }}
+      value={{ scheduled, selectedCourses, conflicts, addSection, replaceSchedule, removeSection, addCourse, removeCourse }}
     >
       {saveError && (
         <div className="schedule-save-error" role="alert">

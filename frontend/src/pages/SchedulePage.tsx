@@ -1,11 +1,12 @@
 import CourseBrowsePanel from '../components/CourseBrowsePanel'
 import ScheduleGrid from '../components/ScheduleGrid'
+import ScheduleGenerator from '../components/ScheduleGenerator'
 import { totalCredits } from '../schedule'
 import { useSchedule } from '../ScheduleContext'
 import { dayLabel, formatMilitaryTime } from '../time'
 
 export default function SchedulePage() {
-  const { scheduled, conflicts, removeSection } = useSchedule()
+  const { scheduled, selectedCourses, conflicts, removeSection } = useSchedule()
   const credits = totalCredits(scheduled)
 
   return (
@@ -13,6 +14,7 @@ export default function SchedulePage() {
       <CourseBrowsePanel />
       <div className="page">
         <h1>My schedule</h1>
+        <ScheduleGenerator key={selectedCourses.map((course) => course.id).join('|')} />
         {scheduled.length > 0 && (
           <p className="muted">
             {scheduled.length} section{scheduled.length === 1 ? '' : 's'}

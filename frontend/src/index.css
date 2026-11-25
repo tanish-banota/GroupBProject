@@ -630,6 +630,78 @@ main {
   margin-top: 0;
 }
 
+.schedule-generator {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0 24px;
+  background: var(--bg-muted);
+}
+
+.schedule-generator h2 {
+  margin-top: 0;
+}
+
+.generator-fixed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.generator-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.generator-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 12px;
+}
+
+.generator-pagination button {
+  margin-left: 8px;
+}
+
+.generator-options {
+  display: grid;
+  gap: 8px;
+}
+
+.generator-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.generator-option.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.generator-preview {
+  margin-top: 20px;
+}
+
+.generator-preview h3 {
+  margin: 0 0 8px;
+}
+
+.generator-preview > button {
+  margin-top: 16px;
+}
+
 .browse-panel {
   border: 1px solid var(--border);
   border-radius: 8px;
