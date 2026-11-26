@@ -1,9 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
-import { useSchedule } from '../ScheduleContext'
 
 export default function NavBar() {
-  const { scheduled } = useSchedule()
   const { user, profile, loading, signIn } = useAuth()
 
   return (
@@ -13,7 +11,7 @@ export default function NavBar() {
         Select courses
       </NavLink>
       <NavLink to="/schedule" className={({ isActive }) => (isActive ? 'active' : '')}>
-        My Schedule {scheduled.length > 0 && <span className="navbar__badge">{scheduled.length}</span>}
+        My Schedule
       </NavLink>
       {user ? (
         <NavLink to="/account" className={({ isActive }) => (isActive ? 'active' : '')}>

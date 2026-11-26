@@ -1,3 +1,4 @@
+import { useState, type KeyboardEvent } from 'react'
 import CourseBrowsePanel from '../components/CourseBrowsePanel'
 import ScheduleGrid from '../components/ScheduleGrid'
 import ScheduleGenerator from '../components/ScheduleGenerator'
@@ -7,14 +8,30 @@ import { dayLabel, formatMilitaryTime } from '../time'
 
 export default function SchedulePage() {
   const { scheduled, selectedCourses, conflicts, removeSection } = useSchedule()
+  const [tab, setTab] = useState<'current' | 'generate'>('current')
   const credits = totalCredits(scheduled)
+
+  const handleTabKey = (event: KeyboardEvent<HTMLButtonElement>, next: 'current' | 'generate') => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    setTab(next)
+    document.getElementById(`schedule-${next}-tab`)?.focus()
+  }
 
   return (
     <div className="schedule-layout">
       <CourseBrowsePanel />
       <div className="page">
         <h1>My schedule</h1>
-        <ScheduleGenerator key={selectedCourses.map((course) => course.id).join('|')} />
+        <div className="schedule-tabs" role="tablist" aria-label="Schedule views">
+          <button id="schedule-current-tab" type="button" role="tab" aria-selected={tab === 'current'} aria-controls="schedule-current-panel" tabIndex={tab === 'current' ? 0 : -1} onClick={() => setTab('current')} onKeyDown={(event) => handleTabKey(event, 'generate')}>
+            Current schedule
+          </button>
+          <button id="schedule-generate-tab" type="button" role="tab" aria-selected={tab === 'generate'} aria-controls="schedule-generate-panel" tabIndex={tab === 'generate' ? 0 : -1} onClick={() => setTab('generate')} onKeyDown={(event) => handleTabKey(event, 'current')}>
+            Generate schedules
+          </button>
+        </div>
+        <div id="schedule-current-panel" role="tabpanel" aria-labelledby="schedule-current-tab" hidden={tab !== 'current'}>
         {scheduled.length > 0 && (
           <p className="muted">
             {scheduled.length} section{scheduled.length === 1 ? '' : 's'}
@@ -76,6 +93,10 @@ export default function SchedulePage() {
             </ul>
           </>
         )}
+        </div>
+        <div id="schedule-generate-panel" role="tabpanel" aria-labelledby="schedule-generate-tab" hidden={tab !== 'generate'}>
+          <ScheduleGenerator key={selectedCourses.map((course) => course.id).join('|')} />
+        </div>
       </div>
     </div>
   )

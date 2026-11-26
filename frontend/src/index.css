@@ -145,17 +145,6 @@ input {
   border-bottom-color: var(--accent);
 }
 
-.navbar__badge {
-  display: inline-block;
-  min-width: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px;
-  text-align: center;
-}
-
 .navbar button {
   white-space: nowrap;
 }
@@ -630,11 +619,41 @@ main {
   margin-top: 0;
 }
 
+.schedule-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin: 16px 0 20px;
+}
+
+.schedule-tabs button {
+  width: auto;
+  padding: 10px 16px;
+  margin: 0 0 -1px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+}
+
+.schedule-tabs button[aria-selected='true'] {
+  color: var(--text-h);
+  font-weight: 600;
+  background: var(--bg);
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+}
+
+.schedule-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .schedule-generator {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
-  margin: 16px 0 24px;
+  margin: 0 0 24px;
   background: var(--bg-muted);
 }
 

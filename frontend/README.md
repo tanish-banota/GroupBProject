@@ -17,12 +17,12 @@ Then from `frontend`:
 
 ```sh
 npm install
-npm run dev:all
+npm run dev
 ```
 
 This starts Vite at `http://localhost:5173` and the backend API at `http://127.0.0.1:8000`. See `backend/README.md` to collect course data. Override the API URL with `VITE_API_BASE_URL` when needed.
 
-The course JSON exports must be present in `backend/soc_output`. Running `npm run dev` alone starts only Vite; course requests will fail if the backend is not running on port 8000. Use the Python executable installed on your machine if it is not at `C:\Python313\python.exe`.
+The course JSON exports must be present in `backend/soc_output`. `npm run dev` starts both servers; `npm run dev:frontend` starts only Vite and needs an API already running on port 8000. Use the Python executable installed on your machine if it is not at `C:\Python313\python.exe`.
 
 ## Supabase accounts
 
@@ -46,7 +46,7 @@ The first screen offers email/password sign-in, email account creation, and Goog
 - **Browse** (`/`) — search and filter courses by subject code, pulled from `/courses`.
 - **Course detail** (`/courses/:courseId`) — a course's sections, meeting times, and instructors, with an "Add to schedule" action per section.
 - **My Schedule** (`/schedule`) — a weekly grid of your added sections, built from meeting times. Sections with overlapping meeting times are flagged with a "Conflict" badge rather than blocked. Your selections persist to your Supabase profile.
-- **Generated schedules** — on My Schedule, generate conflict-free combinations from all selected courses, preview five at a time, and save one to your profile. Closed sections can be included with a toggle, and any manually chosen section can be kept fixed. Results use the section data currently in `backend/soc_output`.
+- **Generated schedules** — use the Generate schedules tab within My Schedule to explore conflict-free combinations, preview five at a time, and save one to your profile. The course browse panel stays visible on both tabs. Closed sections can be included with a toggle, and any manually chosen section can be kept fixed. Results use the section data currently in `backend/soc_output`.
 - **Account** (`/account`) — edit the profile stored in Supabase after signing in with email or Google.
 
 ## Other scripts
